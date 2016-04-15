@@ -1,0 +1,13 @@
+*.m~
+*.aux
+*.log
+*.synctex.gz
+*.bbl
+*.blg
+*.pdf
+*.avi
+*.asv
+*.tex.swp
+*.zip
+*.out
+
