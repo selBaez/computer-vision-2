@@ -1,4 +1,7 @@
-*.m~
+*.mat
+*.pcd
+*_camera.xml
+*_depth.png
 *.aux
 *.log
 *.synctex.gz
