@@ -2,6 +2,8 @@
 *.pcd
 *_camera.xml
 *_depth.png
+*_mask.jpg
+00000000*
 *.aux
 *.log
 *.synctex.gz
