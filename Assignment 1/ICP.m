@@ -35,6 +35,7 @@ else
     % Bc: center of matched base cloud
     Bc = mean(pcd_b);
     % Tc: center of matched target cloud 
+    Ttc = mean(pcd_t);
     Tc = mean(pcd_match);
     
     % Subtract centroid from each point (row)
@@ -47,11 +48,18 @@ else
     
     %% Phase 3: Apply singular value decomposition
     % Build A matrix
-%     A = (cen_pcd_b/size(cen_pcd_b,2)) * ...
+    % Normalization, does not seem to work, results in dimensionality issues.
+%     A = (cen_pcd_b/size(cen_pcd_b,2))' * ...
 %         (cen_pcd_match/size(cen_pcd_match,2))';
     A = cen_pcd_b' * cen_pcd_match;
+    % Tried to sum the succesive entries in the matrix, as indicated by the
+    % documentation, but this negatively impacts performance (results in 
+    % larger errors).
+%     for i = 2:numel(A)
+%         A(i) = A(i) + A(i-1);
+%     end
     
-    [U,S,V] =svd(A,'econ');
+    [U,S,V] = svd(A,'econ');
     
     %% Phase 4: Find R and T
     % Find rotation matrix
