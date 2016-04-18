@@ -7,7 +7,7 @@ if size(pcd_b) ~= size(pcd_t)
     error('Different number of points between PCDs!')
 else
     %% Phase 0: Initialize matrices
-    threshold = 0.001;
+    threshold = 0.0001;
     dist_imp_list = [];
     % m = num_points and n = dimensions
     [num_points, dimensions] = size(pcd_b);
@@ -15,9 +15,10 @@ else
     
     %% Phase 1: Find closest points
     %n2 = zeros(num_points, num_points);
-    sample_points = 100;
-    pcd_b = pcd_b(1:sample_points, :);
-    pcd_t = pcd_t(1:sample_points, :);
+    sample_points = 2000;
+    samples = randperm(68000, sample_points);
+    pcd_b = pcd_b(samples, :);
+    pcd_t = pcd_t(samples, :);
     counter = 1;
     while 1
         % Use given function to calculate distance by brute force
@@ -108,8 +109,8 @@ else
     title('Improvement in each iterative step')
     
     figure; hold on
-    scatter3(pcd_b(:,1), pcd_b(:,2), pcd_b(:,3), 'b')
-    scatter3(new_pcd_t(:,1), new_pcd_t(:,2), new_pcd_t(:,3), 'r')
+    scatter3(pcd_b(:,1), pcd_b(:,2), pcd_b(:,3), 'filled')
+    scatter3(new_pcd_t(:,1), new_pcd_t(:,2), new_pcd_t(:,3), 'filled')
     title('Rendering of base PC with new target PC')
     fprintf('Done!\nNumber of iterations: %i\n', counter)
 end
