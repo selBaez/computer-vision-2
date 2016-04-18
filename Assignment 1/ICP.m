@@ -8,6 +8,7 @@ if size(pcd_b) ~= size(pcd_t)
 else
     %% Phase 0: Initialize matrices
     threshold = 0.001;
+    dist_imp_list = [];
     % m = num_points and n = dimensions
     [num_points, dimensions] = size(pcd_b);
     
@@ -20,7 +21,7 @@ else
     counter = 1;
     while 1
         % Use given function to calculate distance by brute force
-        n2 = dist2(pcd_b, pcd_t); 
+        n2 = dist2(pcd_b, pcd_t); % We need another distance function!
         % currently throwing an "out of memory" error when using whole point cloud
 
         % For each row (point in base), get column index with lowest value 
@@ -75,6 +76,8 @@ else
         end
         fprintf('Old: %i, New: %i, Improved? %i\n',mean(dist_old),...
             mean(dist_new), mean(dist_new) <= mean(dist_old))
+        dist_imp = abs(mean(dist_new) - mean(dist_old))/mean(dist_old);
+        dist_imp_list = vertcat(dist_imp_list, dist_imp);
 
     %     figure; hold on
     %     scatter3(pcd_b(:,1), pcd_b(:,2), pcd_b(:,3), 'b')
@@ -97,6 +100,13 @@ else
             pcd_t = new_pcd_t;
         end
     end
+    figure; hold on
+    plot(1:counter, dist_imp_list,'+-')
+    xlabel('Iterative count')
+    ylabel('Improvement in Difference of Distance')
+    ylim([0, 0.1])
+    title('Improvement in each iterative step')
+    
     figure; hold on
     scatter3(pcd_b(:,1), pcd_b(:,2), pcd_b(:,3), 'b')
     scatter3(new_pcd_t(:,1), new_pcd_t(:,2), new_pcd_t(:,3), 'r')
