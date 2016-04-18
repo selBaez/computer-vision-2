@@ -6,11 +6,17 @@ if size(pcd_b) ~= size(pcd_t)
     error('Different number of points between PCDs!')
 else
     %% Phase 0: Initialize
-    threshold = 0.001;
-    max_iterations = 30; 
+    max_iterations = 50; 
+    threshold = 0.0001;
+    dist_imp_list = [];
     
-    pcd_b = pcd_b(1:sample_points, :);
-    pcd_t = pcd_t(1:sample_points, :);
+    num_points = min(size(pcd_b), size(pcd_t));
+    
+    temp = randperm(num_points);
+    samples = temp(1:sample_points);
+    
+    pcd_b = pcd_b(1:samples, :);
+    pcd_t = pcd_t(1:samples, :);
     counter = 1;
     
     while 1
@@ -61,20 +67,33 @@ else
             dist_new(i) = dist2(pcd_b(i, :), new_pcd_t(i, :));
         end
         
-        fprintf('Old: %i, New: %i, Improved? %i\n', mean(dist_old),...
+        fprintf('Old: %i, New: %i, Improved? %i\n',mean(dist_old),...
             mean(dist_new), mean(dist_new) <= mean(dist_old))
         
+        dist_imp = abs(mean(dist_new) - mean(dist_old))/mean(dist_old);
+        dist_imp_list = vertcat(dist_imp_list, dist_imp);
+        
         % Stop condition
-        if (mean(dist_new) < threshold || counter >= max_iterations)
+        %if (mean(dist_new) < threshold || counter >= max_iterations)
+        if abs(dist_new - dist_old) < threshold
             break
         else
             counter = counter + 1;
             pcd_t = new_pcd_t;
         end
     end
+    
+    %% Plotting
     figure; hold on
-    scatter3(pcd_b(:,1), pcd_b(:,2), pcd_b(:,3), 'b')
-    scatter3(new_pcd_t(:,1), new_pcd_t(:,2), new_pcd_t(:,3), 'r')
+    plot(1:counter, dist_imp_list,'+-')
+    xlabel('Iterative count')
+    ylabel('Improvement in Difference of Distance')
+    ylim([0, 0.1])
+    title('Improvement in each iterative step')
+    
+    figure; hold on
+    scatter3(pcd_b(:,1), pcd_b(:,2), pcd_b(:,3), 'filled')
+    scatter3(new_pcd_t(:,1), new_pcd_t(:,2), new_pcd_t(:,3), 'filled')
     title('Rendering of base PC with new target PC')
     fprintf('Done!\nNumber of iterations: %i\n', counter)
 end

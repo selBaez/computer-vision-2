@@ -3,6 +3,7 @@ pcd_t = readPcd('data/0000000002.pcd');
 % Store only the first three columns (spatial data)
 pcd_b = pcd_b(:, 1:3);
 pcd_t = pcd_t(:, 1:3);
+
 if size(pcd_b) ~= size(pcd_t)
     error('Different number of points between PCDs!')
 else
@@ -10,13 +11,17 @@ else
     threshold = 0.0001;
     dist_imp_list = [];
     % m = num_points and n = dimensions
-    [num_points, dimensions] = size(pcd_b);
+    num_points = min(size(pcd_b), size(pcd_t));
     
     
     %% Phase 1: Find closest points
     %n2 = zeros(num_points, num_points);
     sample_points = 2000;
-    samples = randperm(68000, sample_points);
+    % samples = randperm(68000, sample_points);
+    temp = randperm(num_points);
+    samples = temp(1:sample_points);
+    
+    
     pcd_b = pcd_b(samples, :);
     pcd_t = pcd_t(samples, :);
     counter = 1;
