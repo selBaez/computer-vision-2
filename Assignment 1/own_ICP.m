@@ -6,8 +6,8 @@ if size(pcd_b) ~= size(pcd_t)
     error('Different number of points between PCDs!')
 else
     %% Phase 0: Initialize
-    max_iterations = 50; 
-    threshold = 0.00005;
+    max_iterations = 10; 
+    threshold = 0.0001;
     improvement_list = [];
     
     sumR = eye(3);
@@ -79,15 +79,15 @@ else
             dist_new(i) = dist2(pcd_b(i, :), new_pcd_t(i, :));
         end
         
-        fprintf('Old: %i, New: %i, Improved? %i\n',mean(dist_old),...
+        fprintf('I: %i, Old: %i, New: %i, Improved? %i\n', counter, mean(dist_old),...
             mean(dist_new), mean(dist_new) <= mean(dist_old))
         
         improvement = abs(mean(dist_new) - mean(dist_old))/mean(dist_old);
         improvement_list = vertcat(improvement_list, improvement);
         
         % Stop condition
-        %if (mean(dist_new) < threshold || counter >= max_iterations)
-        if abs(dist_new - dist_old) < threshold
+        if (mean(dist_new) < threshold || counter >= max_iterations)
+%         if abs(dist_new - dist_old) < threshold
 %         if counter >= max_iterations
             break
         else
@@ -97,9 +97,11 @@ else
             for i = 1:3
                 R(:,i) = R(:,i)/norm(R(:,i));
             end
-%             T = T/norm(T);
+            T = T/norm(T);
             sumr = R * sumr;
             sumT = sumT + T;
+            disp(T)
+            disp(sumT)
         end
     end
     
@@ -108,13 +110,13 @@ else
     plot(1:counter, improvement_list,'+-')
     xlabel('Iterative count')
     ylabel('Improvement in Difference of Distance')
-    ylim([0, 0.1])
+%     ylim([0, 0.1])
     title('Improvement in each iterative step')
-    
-    figure; hold on
-    scatter3(pcd_b(:,1), pcd_b(:,2), pcd_b(:,3), 'filled')
-    scatter3(new_pcd_t(:,1), new_pcd_t(:,2), new_pcd_t(:,3), 'filled')
-    title('Rendering of base PC with new target PC')
-    fprintf('Done!\nNumber of iterations: %i\n', counter)
+%     
+%     figure; hold on
+%     scatter3(pcd_b(:,1), pcd_b(:,2), pcd_b(:,3), 'filled')
+%     scatter3(new_pcd_t(:,1), new_pcd_t(:,2), new_pcd_t(:,3), 'filled')
+%     title('Rendering of base PC with new target PC')
+%     fprintf('Done!\nNumber of iterations: %i\n', counter)
 end
 end
