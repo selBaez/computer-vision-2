@@ -1,4 +1,4 @@
-function [pcd_b, new_pcd_t, sumR, sumT] = own_ICP(pcd_b, pcd_t, sample_points)
+function [pcd_b, new_pcd_t, sumr, sumR, sumT] = own_ICP(pcd_b, pcd_t, sample_points)
 %OWN_ICP Implements a basic ICP algorithm, given two point clouds on 3D and
 %the number of sample points
 
@@ -10,7 +10,8 @@ else
     threshold = 0.0001;
     improvement_list = [];
     
-    sumR = zeros(3);
+    sumR = eye(3);
+    sumr = eye(3);
     sumT = zeros(1,3);
     
     num_points = min(size(pcd_b, 1), size(pcd_t, 1));
@@ -85,7 +86,12 @@ else
         else
             counter = counter + 1;
             pcd_t = new_pcd_t;
-            sumR = sumR + R;
+            sumR = R * sumR;
+            for i = 1:3
+                R(:,i) = R(:,i)/norm(R(:,i));
+            end
+%             T = T/norm(T);
+            sumr = R * sumr;
             sumT = sumT + T;
         end
     end
