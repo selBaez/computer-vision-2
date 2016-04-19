@@ -7,7 +7,7 @@ if size(pcd_b) ~= size(pcd_t)
 else
     %% Phase 0: Initialize
     max_iterations = 50; 
-    threshold = 0.0001;
+    threshold = 0.00005;
     improvement_list = [];
     
     sumR = eye(3);
@@ -39,12 +39,18 @@ else
         
         %% Phase 2: Center point clouds
         % Bc: center of matched base cloud
-        Bc = mean(pcd_b);
+        if counter == 1
+            disp('Check!')
+            Bc = mean(pcd_b);
+        end
         % Tc: center of matched target cloud
         Tc = mean(pcd_match);
         
         % Subtract centroid from each point
-        cen_pcd_b = pcd_b - repmat(Bc, sample_points, 1);
+        if counter == 1
+            disp('Check!')
+            cen_pcd_b = pcd_b - repmat(Bc, sample_points, 1);
+        end
         cen_pcd_match = pcd_match - repmat(Tc, sample_points, 1);
         
         
@@ -64,8 +70,8 @@ else
         
         
         %% Phase 5: Calculate new averages distances using transformation matrices
-        new_pcd_t = (R * pcd_match' + repmat(T', 1, sample_points))';
-        
+%         new_pcd_t = (R * pcd_match' + repmat(T', 1, sample_points))';
+        new_pcd_t = (R * pcd_t' + repmat(T', 1, sample_points))';
         dist_old = zeros(sample_points, 1);
         dist_new = zeros(sample_points, 1);
         for i = 1:sample_points
@@ -82,6 +88,7 @@ else
         % Stop condition
         %if (mean(dist_new) < threshold || counter >= max_iterations)
         if abs(dist_new - dist_old) < threshold
+%         if counter >= max_iterations
             break
         else
             counter = counter + 1;
