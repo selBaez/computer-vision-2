@@ -8,15 +8,18 @@ else
     %% Phase 0: Initialize
     max_iterations = 50; 
     threshold = 0.0001;
-    dist_imp_list = [];
+    improvement_list = [];
     
-    num_points = min(size(pcd_b), size(pcd_t));
-    
+    num_points = min(size(pcd_b, 1), size(pcd_t, 1));
+    disp(num_points)
+    if num_points < sample_points
+        sample_points = num_points;
+    end
     temp = randperm(num_points);
     samples = temp(1:sample_points);
     
-    pcd_b = pcd_b(1:samples, :);
-    pcd_t = pcd_t(1:samples, :);
+    pcd_b = pcd_b(samples, :); % Base point cloud
+    pcd_t = pcd_t(samples, :); % Target point cloud
     counter = 1;
     
     while 1
@@ -45,7 +48,7 @@ else
         % Build A (covariance) matrix
         A = cen_pcd_b' * cen_pcd_match;
  
-        [U,S,V] = svd(A,'econ');
+        [U,~,V] = svd(A,'econ');
         
         
         %% Phase 4: Find R and T
@@ -57,8 +60,7 @@ else
         
         
         %% Phase 5: Calculate new averages distances using transformation matrices
-        new_pcd_t = R * pcd_match' + repmat(T', 1, sample_points);
-        new_pcd_t = new_pcd_t';
+        new_pcd_t = (R * pcd_match' + repmat(T', 1, sample_points))';
         
         dist_old = zeros(sample_points, 1);
         dist_new = zeros(sample_points, 1);
@@ -70,8 +72,8 @@ else
         fprintf('Old: %i, New: %i, Improved? %i\n',mean(dist_old),...
             mean(dist_new), mean(dist_new) <= mean(dist_old))
         
-        dist_imp = abs(mean(dist_new) - mean(dist_old))/mean(dist_old);
-        dist_imp_list = vertcat(dist_imp_list, dist_imp);
+        improvement = abs(mean(dist_new) - mean(dist_old))/mean(dist_old);
+        improvement_list = vertcat(improvement_list, improvement);
         
         % Stop condition
         %if (mean(dist_new) < threshold || counter >= max_iterations)
@@ -85,7 +87,7 @@ else
     
     %% Plotting
     figure; hold on
-    plot(1:counter, dist_imp_list,'+-')
+    plot(1:counter, improvement_list,'+-')
     xlabel('Iterative count')
     ylabel('Improvement in Difference of Distance')
     ylim([0, 0.1])
@@ -97,5 +99,4 @@ else
     title('Rendering of base PC with new target PC')
     fprintf('Done!\nNumber of iterations: %i\n', counter)
 end
-
 end
