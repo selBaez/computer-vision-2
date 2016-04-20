@@ -14,6 +14,7 @@ end
 x1 = f1(:,1); x2 = f2(:,1);
 y1 = f1(:,2); y2 = f2(:,2);
 os = ones(size(x1));
+
 % 1.1 EIGHT-POINT ALGORITHM
 % Construct the matrix A by pointwise multiplying the keypoint-coordinate
 % arrays (x1, y1, x2, y2).
@@ -36,8 +37,22 @@ F = V(:, idx(1:3));
 [~, idx] = min(Sf); Sf(idx) = 0;
 % Recompute F: F = Uf * Sf * Vf'
 F = Uf * Sf * Vf';
-out1 = F;
-out2 = S;
+
+% 1.2 NORMALIZED EIGHT-POINT ALGORITHM
+% We want to apply a similarity transformation to the set of points {pi}
+% so that their mean is 0 and the average distance to the mean is sqrt(2).
+mx1 = mean(x1); mx2 = mean(x2);
+my1 = mean(y1); my2 = mean(y2);
+d1 = mean(sqrt(x1-mx1).^2 + sqrt(y1-my1).^2);
+d2 = mean(sqrt(x2-mx2).^2 + sqrt(y2-my2).^2);
+T1 = [sqrt(2)/d1, 0, -mx1*sqrt(2)/d1;
+      0, sqrt(2)/d1, -my*sqrt(2)/d1;
+      0, 0, 1];
+T2 = [sqrt(2)/d2, 0, -mx1*sqrt(2)/d2;
+      0, sqrt(2)/d2, -my*sqrt(2)/d2;
+      0, 0, 1];
+out1 = T1;
+out2 = T2;
 end
 
 function [matches, f1, f2, desc1, desc2] = keypoint_matches(im1, im2)

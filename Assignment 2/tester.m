@@ -5,4 +5,4 @@ im2_path = '/House/frame00000002.png';
 im1 = imread(im1_path);
 im2 = imread(im2_path);
 
-[F, S] = funMat(im1, im2, 0);
+[T1, T2] = funMat(im1, im2, 0);
