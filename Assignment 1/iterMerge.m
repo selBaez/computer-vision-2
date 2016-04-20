@@ -8,6 +8,7 @@ num_frames = 99;
 object_distance = 1.5;
 data_path = 'data/00000000%02d.pcd';
 next = 2;
+performance = [];
 
 figure; hold on
 for f = 0:next:num_frames-next
@@ -29,11 +30,21 @@ for f = 0:next:num_frames-next
     base = base(:, 1:3);
     target = target(:, 1:3);
     
-    [~, ~, R, T, ~] = ICP(base, target, 10000, 20, 0.001);
+    [~, ~, R, T, diff] = ICP(base, target, 10000, 10, 0.001);
 
     M = [R, T'; 0 0 0 1];
+    disp(M)
+    
     target_h = [target, ones(length(target), 1)];
     match  = (M * target_h')';
     scatter3(match(:, 1), match(:, 2), match(:, 3), '.')
-    base = vertcat(base, match);
+    performance = vertcat(performance, diff(end));
+    base = vertcat(base, match(:, 1:3));
 end
+
+% Plot the difference in distance between the two PCDs across iterations
+figure; hold on
+plot(performance,'+-')
+xlabel('Iterative count')
+ylabel('Improvement in Difference of Distance')
+title('Improvement in each iterative step')
