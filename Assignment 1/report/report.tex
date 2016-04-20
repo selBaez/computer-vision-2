@@ -12,7 +12,7 @@
 	 Iterative Closest Point - ICP}
 }
 \author{
-Selene Baez Santamaria (10985417) - Ildefonso Ferreira ()}
+Selene Baez Santamaria (10985417) - Ildefonso Ferreira (10254757)}
 \date{\today}
 
 \begin{document}
@@ -36,14 +36,10 @@ Our implementation follows the basic steps outlined by \texttt{Cai et al}. The s
 	
 	\item \textbf{Center point clouds:} Secondly, we find the geometric centers of each cloud and subtract the centroid from each point. 
 	
-	For the base point cloud we only calculate and shift the cloud once, in the first iteration of the algorithm. Since the base cloud does not change over the iterations, there is no need to recalculate this process.
-	
-	On the other hand, since the matched points from the target cloud do change, we calculate the centroid for this matched cloud on every iteration and subtract it from every point.
-	
 	\item \textbf{Matrix Decomposition:} Next, we apply Singular Value Decomposition using Matlab's built in function \textit{svd}. The matrix to be decomposed is $A$, dimensions $3 x 3$, which is built as the dot product of the centered clouds: 
 	
 	\begin{center}
-		$A = cen_pcd_b^T * cen_pcd_match$
+		$A = centered\_pcd\_base^T * centered\_pcd\_match$
 	\end{center}
 	
 	The resulting matrices are the standard $U, S, V$ matrices.	
@@ -75,8 +71,18 @@ We tested our implementation with the given \textit{source.mat} and \textit{targ
 
 
 \section{Merging scenes}
-We use our function on the dataset provided. Each point cloud corresponds to the image of a person from different angles. 
+We use our function on the dataset provided. The set consists of 100 frames, where each point cloud corresponds to the image of a person from different angles.
 
+Before calling our function, we pre-process the frames and remove outliers points. Since the cloud contains noise regarding the background we ignore all points which third coordinate is larger than a threshold. After tuning we decided to set $ distance\_threshold = 1.5 $
+
+Next, we created a function that merges two given frames. An example for merging Frame 1 and Frame 2 is in Figure \ref{fig:simple_consecutive}. 
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=.6\textwidth]{img/consecutive_matched.jpg}
+	\caption{Average distance between matched points per iteration for source and target test datasets.}
+	\label{fig:simple_consecutive}
+\end{figure}
 
 \subsection{Estimating camera poses using consecutive frames}
 
@@ -90,18 +96,21 @@ We use our function on the dataset provided. Each point cloud corresponds to the
 \label{reflection}
 Given the previous results we can reflect on our implementation and on the ICP algorithm in general.
 
+\subsection{Reflection}
+We noticed that the base cloud does not change over the iterations of the ICP, and so we thought that calculating and shifting the cloud once, in the first iteration of the algorithm, would suffice. On the other hand, since the target cloud does change, we calculate its centroid on every iteration and subtract it from every point. However, this approach led to errors in the transformation. After some reflection we realized our assumption was wrong. Since we performed the matching before the centering on every iteration, we were matching the centered base cloud with the uncentered target cloud.
+
+Additionally we noticed that normalizing the rotation matrix did not have an effect on the end result or performance of the ICP function. Intuitively, we believed that normalizing would remove noise from the algorithm, however, this is not the case. 
+
 \subsection{Drawbacks of ICP}
 Sampling size is important. Given the memory complexity of the brute force comparison, we have to work within a certain limit of comparisons.
 
 The performance heavily depends on the initial orientation of the point clouds. 
-
-Normalization does not change the performance.
  
  
 \subsection{Improvements}
-With regards to our implementation, we recognize that the sampling process could be improved. A smarter approach is to get the most significant points from the clouds and compare them, instead of choosing random points. 
+With regards to our implementation, we recognize that the sampling process could be improved. Random sampling does not ensure that the best most significant points will be taken into account while matching. A smarter approach is to select points according to their normals or other feature information, as suggested in the literature. However, given the time limitations we were not able to implement such mechanisms.
 
-
+In a more general scope, the ICP algorithm is very memory demanding, as it has been mentioned before. It makes sense that several improvements had been suggested to make smart selection of points and weighting of the matches. In it simplest, we can say that ICP is a very naive approach, guided by uninformed brute force. If treated as a search algorithm, ideas such as genetic algorithms or tabu search could find its parallel implementations in ICP.
 
 \end{document}
 
