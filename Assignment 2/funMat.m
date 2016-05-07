@@ -27,6 +27,7 @@ A = [x1.*x2, x1.*y2, x1, y1.*x2, y1.*y2, y1, x2, y2, os];
 % Select the columns corresponding to the 3 smallest singular values.
 % How should the columns of F be ordered?
 F = V(:, idx(1:3));
+fprintf('rank(F) = %i\n', rank(F))
 % An important property of fundamental matrix is that it is singular,
 % in fact of rank two. The estimated fundamental matrix F will not in 
 % general have rank two.
@@ -37,14 +38,14 @@ F = V(:, idx(1:3));
 [~, idx] = min(Sf); Sf(idx) = 0;
 % Recompute F: F = Uf * Sf * Vf'
 F = Uf * Sf * Vf';
-
+fprintf('rank(F'') = %i\n', rank(F))
 % 1.2 NORMALIZED EIGHT-POINT ALGORITHM
 % We want to apply a similarity transformation to the set of points {pi}
 % so that their mean is 0 and the average distance to the mean is sqrt(2).
 mx1 = mean(x1); mx2 = mean(x2);
 my1 = mean(y1); my2 = mean(y2);
-d1 = mean(sqrt(x1-mx1).^2 + sqrt(y1-my1).^2);
-d2 = mean(sqrt(x2-mx2).^2 + sqrt(y2-my2).^2);
+d1 = mean(sqrt((x1-mx1).^2 + (y1-my1).^2));
+d2 = mean(sqrt((x2-mx2).^2 + (y2-my2).^2));
 T1 = [sqrt(2)/d1, 0, -mx1*sqrt(2)/d1;
       0, sqrt(2)/d1, -my1*sqrt(2)/d1;
       0, 0, 1];
