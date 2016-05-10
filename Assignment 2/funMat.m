@@ -13,7 +13,8 @@ else
 end
 x1 = f1(1, :)'; y1 = f1(2, :)';
 x2 = f2(1, :)'; y2 = f2(2, :)';
-os = ones(size(x1));
+os1 = ones(size(x1));
+os2 = ones(size(x2));
 
 %% Normalized Eight-point Algorithm with RANSAC
 % Pick 8 point correspondences randomly from phat1 <-> phat2
@@ -38,8 +39,8 @@ T2 = [sqrt(2)/d2, 0, -mx1*sqrt(2)/d2;
       0, sqrt(2)/d2, -my1*sqrt(2)/d2;
       0, 0, 1];
 
-p1hat = T1 * [x1, y1, os]';
-p2hat = T2 * [x2, y2, os]';
+p1hat = T1 * [x1, y1, os1]';
+p2hat = T2 * [x2, y2, os2]';
 
 
 % while nr_inliers < nrof_matches*acc  % ALTERNATIVE STOPPING CONDITION
@@ -72,15 +73,16 @@ while nr_iter < max_iter
 
     % Check whether the matches pi <-> pi' agree with F, using Sampson
     % distance
-    p1 = [x1, y1, os]'; p2 = [x2, y2, os]';
+    m1 = matches(1,:); m2 = matches(2,:);
+    p1 = [x1(m1), y1(m1), os1(m1)]'; p2 = [x2(m2), y2(m2), os2(m2)]';
     Fp = F*p1; FTp = F'*p2;
 
     % Calculate the Sampson distances
-    denominator = diag(p2' * F * p1)'.^2;
+    denominator = diag(p2' * Fp)'.^2;
     numerator = Fp(1,:).^2  + Fp(2,:).^2 + FTp(1,:).^2 + FTp(2,:).^2;
     dists = denominator./numerator;
 
-    inliers = dists < 10;
+    inliers = dists < 20;
     nr_inliers_ = sum(inliers);
     fprintf('#iterations: %i, \t#inliers: %i\n', nr_iter, nr_inliers_)
     if nr_inliers_ > nr_inliers
@@ -173,14 +175,12 @@ function [matches, f1, f2, desc1, desc2] = keypoint_matches(im1, im2)
 % f1 & f2 : feature frames containing the keypoints
 if size(im1, 3) == 3
     im1 = single(rgb2gray(im1));
-else
-    im1 = single(im1);
-end
-if size(im2, 3) ==3
     im2 = single(rgb2gray(im2));
 else
-    im2 = single(im1);
+    im1 = single(im1);
+    im2 = single(im2);
 end
+
 [f1, desc1] = vl_sift(im1);
 [f2, desc2] = vl_sift(im2);
 matches = vl_ubcmatch(desc1, desc2);
