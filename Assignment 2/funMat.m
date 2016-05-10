@@ -46,7 +46,8 @@ p2hat = T2 * [x2, y2, os2]';
 % while nr_inliers < nrof_matches*acc  % ALTERNATIVE STOPPING CONDITION
 while nr_iter < max_iter
     nr_iter = nr_iter + 1;
-    sample = datasample(matches,points,2,'Replace',false);
+    %sample = datasample(matches,points,2,'Replace',false);
+    sample = get_sample(nrof_matches, points, matches);
     
     x1hat = p1hat(1,sample(1,:))'; y1hat = p1hat(2,sample(1,:))';
     x2hat = p2hat(1,sample(2,:))'; y2hat = p2hat(2,sample(2,:))';
