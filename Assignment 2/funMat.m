@@ -5,7 +5,7 @@
 % 4. Estimate the fundamental matrix for the given two images.
 % Note: Eliminating detected interest points on background can help <- HOW?
 
-function [out] = funMat(im1, im2, method, show)
+function [points, F] = funMat(im1, im2, method, show)
 if show
     [matches, f1, f2] = show_keypointmatches(im1, im2, 10);
 else
@@ -97,6 +97,8 @@ x1 = f1(1, f1_matches)'; y1 = f1(2, f1_matches)';
 x2 = f2(1, f2_matches)'; y2 = f2(2, f2_matches)';
 os = ones(size(x1));
 
+points = [x1'; y1'; x2'; y2'];  % Return the inliers
+
 if method == 1
     %% 1.1 EIGHT-POINT ALGORITHM
     % Construct the matrix A by pointwise multiplying the keypoint-coordinate
@@ -123,7 +125,7 @@ if method == 1
     % to zero in order to obtain the corrected matrix D'f.
     [~, idx] = min(Sf); Sf(idx) = 0;
     % Recompute F: F = Uf * Sf * Vf'
-    F = Uf * Sf * Vf'; out = F;  % Return the fundamental matrix
+    F = Uf * Sf * Vf';  % Return the fundamental matrix
 
 %     fprintf('rank(F'') = %i\n', rank(F))
 elseif method == 2
@@ -166,7 +168,7 @@ elseif method == 2
     Fhat = Ufhat * Sfhat * Vfhat';
     
     % 1.2.3 Denormalization
-    F = T2' * Fhat * T1; out = F;  % Return the fundamental matrix
+    F = T2' * Fhat * T1;  % Return the fundamental matrix
 end
 end
 
