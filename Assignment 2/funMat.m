@@ -5,7 +5,7 @@
 % 4. Estimate the fundamental matrix for the given two images.
 % Note: Eliminating detected interest points on background can help <- HOW?
 
-function [points, F] = funMat(im1, im2, method, show)
+function [points, F] = funMat(im1, im2, method, show, threshold)
 if show
     [matches, f1, f2] = show_keypointmatches(im1, im2, 10);
 else
@@ -85,7 +85,7 @@ while nr_iter < max_iter
     numerator = Fp(1,:).^2  + Fp(2,:).^2 + FTp(1,:).^2 + FTp(2,:).^2;
     dists = denominator./numerator;
 
-    inliers = dists < 0.1;
+    inliers = dists < threshold;
     nr_inliers_ = sum(inliers);
 %     fprintf('#iterations: %i, \t#inliers: %i\n', nr_iter, nr_inliers_)
     if nr_inliers_ > nr_inliers
