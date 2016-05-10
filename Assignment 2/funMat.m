@@ -25,7 +25,7 @@ os2 = ones(size(x2));
 % Repeat this process many times, pick the largest set of inliers
 
 % RANSAC PARAMETERS
-points = 8; acc = 0.5; max_iter = 30;
+points = 8; max_iter = 30;
 nrof_matches = length(matches);
 nr_inliers = 0; nr_iter = 0;
 
@@ -44,35 +44,60 @@ T2 = [sqrt(2)/d2, 0, -mx1*sqrt(2)/d2;
 p1hat = T1 * [x1, y1, os1]';
 p2hat = T2 * [x2, y2, os2]';
 
-
-% while nr_inliers < nrof_matches*acc  % ALTERNATIVE STOPPING CONDITION
 while nr_iter < max_iter
     nr_iter = nr_iter + 1;
-    %sample = datasample(matches,points,2,'Replace',false);
     sample = get_sample(nrof_matches, points, matches);
     
-    x1hat = p1hat(1,sample(1,:))'; y1hat = p1hat(2,sample(1,:))';
-    x2hat = p2hat(1,sample(2,:))'; y2hat = p2hat(2,sample(2,:))';
-    oshat = ones(size(x1hat));
+    if method == 1
+        % EIGHT-POINT ALGORITHM
+        % Construct the matrix A by pointwise multiplying the keypoint-coordinate
+        % arrays (x1, y1, x2, y2).
+        A = [x1.*x2, x1.*y2, x1, y1.*x2, y1.*y2, y1, x2, y2, os];
 
-    A = [x1hat.*x2hat, x1hat.*y2hat, x1hat, y1hat.*x2hat,...
-         y1hat.*y2hat, y1hat, x2hat, y2hat, oshat];
+        % The entries of F are the components of the column of V 
+        % corresponding to the smallest singular value; the diagonal values
+        % lie on the diagonal of S.
+        [~, S, V] = svd(A);
+        [~, idx] = sort(diag(S));
 
-    % Compute the fundamental matrix F
-    [~, ~, V] = svd(A);
+        % Select the columns corresponding to the smallest singular values.
+        F = V(:, idx(1)); F = reshape(F,3,3);
 
-    % Get Fhat from the last column of V in the SVD of A.
-    Fhat = V(:,end); Fhat = reshape(Fhat,3,3);
+        % Find the SVD of F
+        [Uf, Sf, Vf] = svd(F);
 
-    % Find the SVD of Fhat.
-    [Ufhat, Sfhat, Vfhat] = svd(Fhat);
-    Sfhat(end) = 0;
+        % Set the smallest singular value in the diagonal matrix Df
+        % to zero in order to obtain the corrected matrix D'f.
+        [~, idx] = min(Sf); Sf(idx) = 0;
 
-    % Recompute F: F = Uf * Sf * Vf'
-    Fhat = Ufhat * Sfhat * Vfhat';
+        % Recompute F: F = Uf * Sf * Vf'
+        F = Uf * Sf * Vf';  % Return the fundamental matrix
+    
+    elseif method == 2
+        % NORMALIZED EIGHT-POINT ALGORITHM
+        x1hat = p1hat(1,sample(1,:))'; y1hat = p1hat(2,sample(1,:))';
+        x2hat = p2hat(1,sample(2,:))'; y2hat = p2hat(2,sample(2,:))';
+        oshat = ones(size(x1hat));
 
-    % 1.2.3 Denormalization
-    F = T2' * Fhat * T1;
+        A = [x1hat.*x2hat, x1hat.*y2hat, x1hat, y1hat.*x2hat,...
+             y1hat.*y2hat, y1hat, x2hat, y2hat, oshat];
+
+        % Compute the fundamental matrix F
+        [~, ~, V] = svd(A);
+
+        % Get Fhat from the last column of V in the SVD of A.
+        Fhat = V(:,end); Fhat = reshape(Fhat,3,3);
+
+        % Find the SVD of Fhat.
+        [Ufhat, Sfhat, Vfhat] = svd(Fhat);
+        Sfhat(end) = 0;
+
+        % Recompute F: F = Uf * Sf * Vf'
+        Fhat = Ufhat * Sfhat * Vfhat';
+
+        % 1.2.3 Denormalization
+        F = T2' * Fhat * T1;
+    end
 
     % Check whether the matches pi <-> pi' agree with F, using Sampson
     % distance
@@ -98,81 +123,8 @@ end
 f1_matches = inlier_matches(1,:); f2_matches = inlier_matches(2,:);
 x1 = f1(1, f1_matches)'; y1 = f1(2, f1_matches)';
 x2 = f2(1, f2_matches)'; y2 = f2(2, f2_matches)';
-os = ones(size(x1));
 
 points = [x1'; y1'; x2'; y2'];  % Return the inliers
-
-if method == 1
-    %% 1.1 EIGHT-POINT ALGORITHM
-    % Construct the matrix A by pointwise multiplying the keypoint-coordinate
-    % arrays (x1, y1, x2, y2).
-    A = [x1.*x2, x1.*y2, x1, y1.*x2, y1.*y2, y1, x2, y2, os];
-    
-    % The entries of F are the components of the column of V 
-    % corresponding to the smallest singular value; the diagonal values
-    % lie on the diagonal of S.
-    [~, S, V] = svd(A);
-    [~, idx] = sort(diag(S));
-    
-    % Select the columns corresponding to the smallest singular values.
-    F = V(:, idx(1)); F = reshape(F,3,3);
-%     fprintf('rank(F) = %i\n', rank(F))
-    
-    % An important property of fundamental matrix is that it is singular,
-    % in fact of rank two. The estimated fundamental matrix F will not in 
-    % general have rank two.
-    % Find the SVD of F
-    [Uf, Sf, Vf] = svd(F);
-    
-    % Set the smallest singular value in the diagonal matrix Df
-    % to zero in order to obtain the corrected matrix D'f.
-    [~, idx] = min(Sf); Sf(idx) = 0;
-    % Recompute F: F = Uf * Sf * Vf'
-    F = Uf * Sf * Vf';  % Return the fundamental matrix
-
-%     fprintf('rank(F'') = %i\n', rank(F))
-elseif method == 2
-    %% 1.2 NORMALIZED EIGHT-POINT ALGORITHM
-    % We want to apply a similarity transformation to the set of points {pi}
-    % so that their mean is 0 and the average distance to the mean is sqrt(2).
-    % 1.2.1 Normalization
-    mx1 = mean(x1); mx2 = mean(x2);
-    my1 = mean(y1); my2 = mean(y2);
-    d1 = mean(sqrt((x1-mx1).^2 + (y1-my1).^2));
-    d2 = mean(sqrt((x2-mx2).^2 + (y2-my2).^2));
-    T1 = [sqrt(2)/d1, 0, -mx1*sqrt(2)/d1;
-          0, sqrt(2)/d1, -my1*sqrt(2)/d1;
-          0, 0, 1];
-    T2 = [sqrt(2)/d2, 0, -mx1*sqrt(2)/d2;
-          0, sqrt(2)/d2, -my1*sqrt(2)/d2;
-          0, 0, 1];
-    
-    p1hat = T1 * [x1, y1, os]';
-    p2hat = T2 * [x2, y2, os]';
-    
-    % Add check: mean equal to 0 and avg. dist. from mean equalt to sqrt(2)
-    % 1.2.2 Find a fundamental matrix
-    % Construct a mtriax A from the matches phat1 <-> phat2, does this mean
-    % that we need to match these again?
-    x1hat = p1hat(1,:)'; y1hat = p1hat(2,:)';
-    x2hat = p2hat(1,:)'; y2hat = p2hat(2,:)';
-    A = [x1hat.*x2hat, x1hat.*y2hat, x1hat, y1hat.*x2hat,...
-         y1hat.*y2hat, y1hat, x2hat, y2hat, os];
-    [~, ~, V] = svd(A);
-    
-    % Get Fhat from the last column of V in the SVD of A.
-    Fhat = V(:, end); Fhat = reshape(Fhat,3,3);
-    
-    % Find the SVD of Fhat.
-    [Ufhat, Sfhat, Vfhat] = svd(Fhat);
-    [~, idx] = min(Sfhat); Sfhat(idx) = 0;
-    
-    % Recompute F: F = Uf * Sf * Vf'
-    Fhat = Ufhat * Sfhat * Vfhat';
-    
-    % 1.2.3 Denormalization
-    F = T2' * Fhat * T1;  % Return the fundamental matrix
-end
 end
 
 %% Matching functions
