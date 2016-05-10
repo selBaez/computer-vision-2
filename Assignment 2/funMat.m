@@ -63,7 +63,7 @@ while nr_iter < max_iter
 
     % Find the SVD of Fhat.
     [Ufhat, Sfhat, Vfhat] = svd(Fhat);
-    [~, idx] = min(Sfhat); Sfhat(idx) = 0;
+    Sfhat(end) = 0;
 
     % Recompute F: F = Uf * Sf * Vf'
     Fhat = Ufhat * Sfhat * Vfhat';
@@ -82,7 +82,7 @@ while nr_iter < max_iter
     numerator = Fp(1,:).^2  + Fp(2,:).^2 + FTp(1,:).^2 + FTp(2,:).^2;
     dists = denominator./numerator;
 
-    inliers = dists < 20;
+    inliers = dists < 0.5;
     nr_inliers_ = sum(inliers);
     fprintf('#iterations: %i, \t#inliers: %i\n', nr_iter, nr_inliers_)
     if nr_inliers_ > nr_inliers
@@ -201,7 +201,7 @@ figure(1); clf; hold on ; imshow([im1,im2]);
 h = line([x1 ; x2], [y1 ; y2]) ;
 set(h,'linewidth', 1, 'color', 'b') ;
 vl_plotframe(f1(:,keypoints(1,:))) ;
-f2(1,:) = f2(1,:) + size(im1,2) ;
-vl_plotframe(f2(:,keypoints(2,:))) ;
+f2pl = f2; f2pl(1,:) = f2(1,:) + size(im1,2) ;
+vl_plotframe(f2pl(:,keypoints(2,:))) ;
 axis image off ;
 end
