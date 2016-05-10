@@ -11,8 +11,10 @@ if show
 else
     [matches, f1, f2] = keypoint_matches(im1, im2);
 end
-x1 = f1(1, :)'; y1 = f1(2, :)';
-x2 = f2(1, :)'; y2 = f2(2, :)';
+
+x1 = f1(1,:)'; y1 = f1(2,:)';
+x2 = f2(1,:)'; y2 = f2(2,:)';
+
 os1 = ones(size(x1));
 os2 = ones(size(x2));
 
@@ -83,9 +85,9 @@ while nr_iter < max_iter
     numerator = Fp(1,:).^2  + Fp(2,:).^2 + FTp(1,:).^2 + FTp(2,:).^2;
     dists = denominator./numerator;
 
-    inliers = dists < 0.5;
+    inliers = dists < 0.1;
     nr_inliers_ = sum(inliers);
-    fprintf('#iterations: %i, \t#inliers: %i\n', nr_iter, nr_inliers_)
+%     fprintf('#iterations: %i, \t#inliers: %i\n', nr_iter, nr_inliers_)
     if nr_inliers_ > nr_inliers
         nr_inliers = nr_inliers_;
         inlier_matches = matches([inliers; inliers]==1);
@@ -186,6 +188,7 @@ end
 
 [f1, desc1] = vl_sift(im1);
 [f2, desc2] = vl_sift(im2);
+
 matches = vl_ubcmatch(desc1, desc2);
 end
 
