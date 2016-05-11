@@ -60,16 +60,13 @@ for i = 1:length(pvMat)
         Dmat = horzcat(Dmat, pvMat(:,i));
     end
 end
-% size(Dmat)
 % 3. Apply SVD to the 2MxN
 [U,S,V] = svd(Dmat);
-%size(S)
-%size(V)
 U = U(:,1:3);
 W = S(1:3,1:3);
 V = V(:,1:3);
 %motionMat = U * sqrtm(W);
 shapePC  = sqrtm(W) * V';
 
-%scatter3(shapePC(1,:), shapePC(2,:), shapePC(3,:))
+scatter3(shapePC(1,:), shapePC(2,:), shapePC(3,:))
 end

@@ -6,3 +6,5 @@ im1 = imread(im1_path);
 im2 = imread(im2_path);
 
 [points, F] = funMat(im1, im2, 2, 0, 0.5);
+
+scatter3(finalPC(1,:), finalPC(2,:), finalPC(3,:))

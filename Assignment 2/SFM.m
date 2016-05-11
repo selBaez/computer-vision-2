@@ -1,5 +1,5 @@
 finalPC = [];
-for i = 1:3:10
+for i = 1:3:45
     shapePC = shapeMat(i, i+4);
     if isempty(finalPC)
         finalPC = shapePC;
