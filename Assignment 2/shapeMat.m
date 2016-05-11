@@ -17,7 +17,7 @@ for im = im_indexes
 
     if im == imStart
         % INITIAL STEP
-        pvMat = funMat(im1, im2, 2, 0, 0.5);
+        pvMat = funMat(im1, im2, 2, 0, .1);
         % Remove duplicate points
         pvMat = unique(pvMat','rows')';
     else
@@ -25,7 +25,7 @@ for im = im_indexes
         pvMat = vertcat(pvMat, zeros(2,length(pvMat)));
         
         [row, col] = size(pvMat);
-        points = funMat(im1, im2, 2, 0, 0.5);
+        points = funMat(im1, im2, 2, 0, .1);
         
         this_pv = points(1:2,:)';
         
@@ -47,6 +47,7 @@ for im = im_indexes
         end
     end
 end
+spy(pvMat)
 
 % 2. Select a dense block from the point-view matrix and construct the 2MxN
 % measurement matrix D.
@@ -59,12 +60,16 @@ for i = 1:length(pvMat)
         Dmat = horzcat(Dmat, pvMat(:,i));
     end
 end
+% size(Dmat)
 % 3. Apply SVD to the 2MxN
 [U,S,V] = svd(Dmat);
+%size(S)
+%size(V)
 U = U(:,1:3);
 W = S(1:3,1:3);
 V = V(:,1:3);
 %motionMat = U * sqrtm(W);
 shapePC  = sqrtm(W) * V';
 
-scatter3(shapePC(1,:), shapePC(2,:), shapePC(3,:))
+%scatter3(shapePC(1,:), shapePC(2,:), shapePC(3,:))
+end

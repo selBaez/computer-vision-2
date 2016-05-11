@@ -41,7 +41,7 @@ T2 = [sqrt(2)/d2, 0, -mx1*sqrt(2)/d2;
       0, sqrt(2)/d2, -my1*sqrt(2)/d2;
       0, 0, 1];
 
-p1hat = T1 * [x1, y1, os1]';
+p1hat = T1 * [x1, y1, os1]'; 
 p2hat = T2 * [x2, y2, os2]';
 
 while nr_iter < max_iter
@@ -50,9 +50,14 @@ while nr_iter < max_iter
     
     if method == 1
         % EIGHT-POINT ALGORITHM
+        x1raw = x1(sample(1,:)); y1raw = y1(sample(1,:));
+        x2raw = x2(sample(2,:)); y2raw = y2(sample(2,:));
+        os = ones(size(x1raw));
+        
         % Construct the matrix A by pointwise multiplying the keypoint-coordinate
         % arrays (x1, y1, x2, y2).
-        A = [x1.*x2, x1.*y2, x1, y1.*x2, y1.*y2, y1, x2, y2, os];
+        A = [x1raw.*x2raw, x1raw.*y2raw, x1raw, y1raw.*x2raw, ...
+            y1raw.*y2raw, y1raw, x2raw, y2raw, os]; 
 
         % The entries of F are the components of the column of V 
         % corresponding to the smallest singular value; the diagonal values

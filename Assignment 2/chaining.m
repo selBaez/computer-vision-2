@@ -6,20 +6,20 @@ im_format = 'House/frame000000%02d.png';
 nfirst = 1;
 nim = 49;
 
-im_indexes = nfirst+1:nim;
+im_indexes = nfirst:nim;
 
 for im = im_indexes
     fprintf('Image: %i of %i\n', im, nim)
     
-    impath1 = sprintf(im_format, im - 1);
-    impath2 = sprintf(im_format, im);  
+    impath1 = sprintf(im_format, im);
+    impath2 = sprintf(im_format, im + 1);  
     
     im1 = imread(impath1);
     im2 = imread(impath2);
 
-    if im == 2
+    if im == 1
         % INITIAL STEP
-        pvMat = funMat(im1, im2, 2, 0);
+        pvMat = funMat(im1, im2, 2, 0, 0.5);
         % Remove duplicate points
         pvMat = unique(pvMat','rows')';
     else
@@ -27,7 +27,7 @@ for im = im_indexes
         pvMat = vertcat(pvMat, zeros(2,length(pvMat)));
         
         [row, col] = size(pvMat);
-        points = funMat(im1, im2, 2, 0);
+        points = funMat(im1, im2, 2, 0, 0.5);
         this_pv = points(1:2,:)';
         
         for n = 1:length(points)
@@ -48,3 +48,5 @@ for im = im_indexes
         end
     end
 end
+
+scatter3(finalPC(1,:), finalPC(2,:), finalPC(3,:))
